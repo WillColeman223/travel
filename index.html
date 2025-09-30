@@ -6,71 +6,55 @@
   <title>Petersfield Station Live Departure Board</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #1c1c1c;
-      color: #fff;
+      font-family: 'Courier New', monospace;
+      background-color: #000;
+      color: #00FF00;
       margin: 0;
       padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
     }
-    .container {
-      width: 90%;
-      margin: 0 auto;
-      padding: 20px;
+    .board {
+      width: 80%;
+      height: 80%;
+      overflow: hidden;
+      position: relative;
+      border: 5px solid #00FF00;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
     }
-    h1 {
-      text-align: center;
-      color: #ffcc00;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px #000;
+    .scrolling-text {
+      position: absolute;
+      white-space: nowrap;
+      animation: scroll-left 30s linear infinite;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    @keyframes scroll-left {
+      0% { left: 100%; }
+      100% { left: -100%; }
     }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #444;
-    }
-    th {
-      background-color: #333;
-      color: #ffcc00;
-    }
-    tr:nth-child(even) {
-      background-color: #222;
+    .train-info {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      background-color: rgba(0, 255, 0, 0.1);
+      border-radius: 5px;
     }
     .status {
       font-weight: bold;
     }
-    .on-time {
-      color: #00ff00;
-    }
-    .delayed {
-      color: #ff0000;
-    }
-    .cancelled {
-      color: #ff9900;
-    }
+    .on-time { color: #00FF00; }
+    .delayed { color: #FF0000; }
+    .cancelled { color: #FF9900; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Petersfield Station Live Departure Board</h1>
-  <table id="departure-board">
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Destination</th>
-        <th>Platform</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Departure data will be inserted here -->
-    </tbody>
-  </table>
+<div class="board">
+  <div class="scrolling-text" id="departure-board">
+    <!-- Train information will be inserted here -->
+  </div>
 </div>
 
 <script>
@@ -82,44 +66,38 @@
       const response = await fetch(url);
       const data = await response.json();
       const departures = data.departures || [];
-      const tableBody = document.querySelector('#departure-board tbody');
-      
-      // Clear existing rows
-      tableBody.innerHTML = '';
+      const board = document.getElementById('departure-board');
+      board.innerHTML = ''; // Clear previous content
 
       departures.forEach(departure => {
-        const row = tableBody.insertRow();
-
-        // Time
-        row.insertCell(0).textContent = departure.std || departure.etd;
-
-        // Destination
-        row.insertCell(1).textContent = departure.destination_name || departure.destination;
-
-        // Platform
-        row.insertCell(2).textContent = departure.platform || 'TBC';
-
-        // Status
-        const statusCell = row.insertCell(3);
-        let statusText = departure.etd || 'On time';
-        let statusClass = 'on-time';
-        if (statusText.toLowerCase() === 'delayed') statusClass = 'delayed';
-        if (statusText.toLowerCase() === 'cancelled') statusClass = 'cancelled';
-        statusCell.textContent = statusText;
-        statusCell.classList.add('status', statusClass);
+        const statusClass = getStatusClass(departure.etd);
+        const trainInfo = `
+          <span class="train-info">
+            <span class="time">${departure.std || departure.etd}</span>
+            <span class="destination">${departure.destination_name || departure.destination}</span>
+            <span class="platform">${departure.platform || 'TBC'}</span>
+            <span class="status ${statusClass}">${departure.etd || 'On time'}</span>
+          </span>
+        `;
+        board.innerHTML += trainInfo;
       });
-
     } catch (error) {
       console.error('Error fetching departure data:', error);
     }
   }
 
-  // Initial fetch
-  fetchDepartures();
+  function getStatusClass(status) {
+    if (!status) return 'on-time';
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('delayed')) return 'delayed';
+    if (statusLower.includes('cancelled')) return 'cancelled';
+    return 'on-time';
+  }
 
-  // Refresh every 30 seconds
-  setInterval(fetchDepartures, 30000);
+  fetchDepartures();
+  setInterval(fetchDepartures, 30000); // Refresh every 30 seconds
 </script>
 
 </body>
 </html>
+
