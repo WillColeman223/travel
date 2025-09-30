@@ -5,195 +5,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Travel Itinerary</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(to bottom, #6dd5ed, #2193b0);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 50px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom, #6dd5ed, #2193b0);
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+  min-height: 100vh;
+}
 
-  .container {
-    width: 95%;
-    max-width: 430px;
-    border-radius: 30px;
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    padding: 30px;
-    color: #fff;
-    animation: fadeIn 1s ease forwards;
-    opacity: 0;
-    position: relative;
-  }
+.container {
+  width: 95%;
+  max-width: 430px;
+}
 
-  h1 {
-    font-weight: 700;
-    font-size: 2em;
-    text-align: center;
-    margin-bottom: 25px;
-    text-shadow: 0 1px 10px rgba(0,0,0,0.3);
-  }
+.section {
+  position: relative;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 20px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  color: #fff;
+  cursor: pointer;
+}
 
-  .section {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    transition: transform 0.3s ease, background 0.3s ease;
-    position: relative;
-  }
+.section h2 {
+  font-weight: 600;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+}
 
-  .section:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.25);
-  }
+ul { list-style: none; padding-left: 0; }
+li { padding: 10px 12px; margin-bottom: 8px; border-radius: 15px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); font-weight: 500; transition: all 0.3s ease; }
+li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
 
-  h2 {
-    font-weight: 600;
-    font-size: 1.2em;
-    margin-bottom: 15px;
-  }
+.map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
+.clouds {
+  position: absolute; top: -50px; left: 0; width: 200%; height: 100px;
+  background: url('https://i.ibb.co/0Fyp2tH/clouds.png') repeat-x;
+  animation: moveClouds 60s linear infinite;
+  z-index: 0;
+}
+@keyframes moveClouds { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-  ul {
-    list-style: none;
-    padding-left: 0;
-  }
-
-  li {
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    border-radius: 15px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(5px);
-    font-weight: 500;
-    cursor: pointer;
-  }
-
-  li:hover {
-    transform: scale(1.03);
-    background: rgba(255,255,255,0.25);
-  }
-
-  .map-container {
-    display: none;
-    width: 100%;
-    height: 200px;
-    margin-top: 15px;
-    border-radius: 15px;
-    overflow: hidden;
-  }
-
-  .clouds {
-    position: absolute;
-    top: -50px;
-    left: 0;
-    width: 100%;
-    height: 100px;
-    background: url('https://i.ibb.co/0Fyp2tH/clouds.png') repeat-x;
-    animation: moveClouds 60s linear infinite;
-    pointer-events: none;
-    z-index: -1;
-  }
-
-  @keyframes moveClouds {
-    0% { background-position-x: 0; }
-    100% { background-position-x: 1000px; }
-  }
-
-  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+.city-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: url('https://i.ibb.co/5Kf2cVZ/city.png') no-repeat center bottom; background-size: cover; z-index:-1; opacity:0.1; }
+.train-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: url('https://i.ibb.co/Qmp87rT/train.png') no-repeat center bottom; background-size: cover; z-index:-1; opacity:0.1; }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="clouds"></div>
-  <h1>Travel Itinerary</h1>
 
-  <div class="section" onclick="toggleMap('planeMap')">
+  <div class="section flight" onclick="toggleMap('planeMap', [51.1537, -0.1821], [[51.1537,-0.1821],[40.4680,-3.6894]])">
     <h2>Flight Summary</h2>
     <ul>
       <li>Airline & Flight: easyJet EZY8021 (U2 8021)</li>
       <li>Route: London Gatwick (LGW) → Madrid Barajas (MAD)</li>
       <li>Aircraft: Airbus A319</li>
-      <li>Distance: ~1,215 km (≈753 miles)</li>
-      <li>Baggage: Cabin bag only (no checked luggage)</li>
+      <li>Distance: ~1,215 km</li>
+      <li>Baggage: Cabin bag only</li>
     </ul>
     <div id="planeMap" class="map-container"></div>
+    <div class="clouds"></div>
   </div>
 
-  <div class="section" onclick="toggleMap('metroMap')">
-    <h2>Transfer to Madrid Chamartín Station</h2>
+  <div class="section metro" onclick="toggleMap('metroMap', [40.4680,-3.6894], [[40.4680,-3.6894],[40.4725,-3.6937]])">
+    <h2>Transfer to Chamartín Station</h2>
     <ul>
       <li>Arrival at T1: 11:35</li>
       <li>Immigration & baggage: ~20 min → 11:55</li>
-      <li>Shuttle bus: T1 → T4 (~10 min) → 12:05</li>
-      <li>Train from T4: Cercanías Line C1 (~12:15 departure, 16 min journey)</li>
+      <li>Shuttle T1 → T4 (~10 min)</li>
+      <li>Train: Cercanías Line C1 (~12:15 departure)</li>
       <li>Arrival at Chamartín: ~12:30–12:35</li>
-      <li>Alternative: Taxi direct (~20–25 min, €30)</li>
+      <li>Alternative: Taxi (~€30)</li>
     </ul>
     <div id="metroMap" class="map-container"></div>
+    <div class="city-bg"></div>
   </div>
 
-  <div class="section" onclick="toggleMap('trainMap')">
+  <div class="section train" onclick="toggleMap('trainMap', [40.4680,-3.6894], [[40.4680,-3.6894],[41.6528,-4.7189]])">
     <h2>Train from Chamartín to Valladolid</h2>
     <ul>
-      <li>Direct trains: ~1h 20–1h 30m</li>
-      <li>Sample schedule: 12:03 → 13:33, 13:59 → 15:23, 16:30 → 17:59, 17:50 → 19:17</li>
+      <li>Direct trains: ~1h 30m</li>
+      <li>Sample schedule: 12:03 → 13:33, 13:59 → 15:23</li>
       <li>6 direct services daily</li>
-      <li>Estimated cost: €15–€30 (standard direct ticket)</li>
-      <li>Note: Schedule to be confirmed closer to 26 Dec</li>
+      <li>Estimated cost: €15–€30</li>
     </ul>
     <div id="trainMap" class="map-container"></div>
+    <div class="train-bg"></div>
   </div>
 
   <div class="section">
     <h2>Travel Notes</h2>
     <ul>
-      <li>Traveling with cabin bag only — no need to wait for checked luggage</li>
-      <li>Check real-time schedules for Cercanías Line C1 and Renfe trains</li>
-      <li>Allow extra time for queues or delays</li>
-      <li>Taxi is best if in a hurry or with heavy luggage</li>
+      <li>Traveling with cabin bag only</li>
+      <li>Check real-time schedules</li>
+      <li>Allow extra time for queues</li>
+      <li>Taxi if in a hurry</li>
     </ul>
   </div>
 </div>
-
 <script>
-  mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
-  function initMap(containerId, coords) {
-    var map = new mapboxgl.Map({
-      container: containerId,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: coords,
-      zoom: 6
-    });
-    new mapboxgl.Marker({ color: 'red' }).setLngLat(coords).addTo(map);
-    return map;
-  }
-
-  var planeMap, metroMap, trainMap;
-
-  function toggleMap(id) {
-    var mapDiv = document.getElementById(id);
-    if(mapDiv.style.display === 'block') {
-      mapDiv.style.display = 'none';
-    } else {
-      mapDiv.style.display = 'block';
-      if(id === 'planeMap' && !planeMap) planeMap = initMap('planeMap', [-0.1821, 51.1537]);
-      if(id === 'metroMap' && !metroMap) metroMap = initMap('metroMap', [-3.6894, 40.4680]);
-      if(id === 'trainMap' && !trainMap) trainMap = initMap('trainMap', [-4.7189, 41.6528]);
+function toggleMap(id, center, route){
+  const mapDiv = document.getElementById(id);
+  if(mapDiv.style.display==='block'){
+    mapDiv.style.display='none';
+  } else {
+    mapDiv.style.display='block';
+    if(!mapDiv.map){
+      mapDiv.map = L.map(id).setView(center,6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapDiv.map);
+      if(route){ L.polyline(route, {color:'red', weight:4}).addTo(mapDiv.map); }
     }
   }
+}
 </script>
 </body>
 </html>
 
-</html>
