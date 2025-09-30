@@ -92,20 +92,15 @@ async function fetchDepartures() {
     const response = await fetch(url);
     const data = await response.json();
 
-    console.log("Raw RTT JSON:", data); // Debug: see actual structure
+    console.log("Raw RTT JSON:", data); // Debug: check structure
 
-    // Attempt to get departures array from multiple possible paths
-    let departuresArray = [];
-    if (data.departures) {
-      if (Array.isArray(data.departures.all)) departuresArray = data.departures.all;
-      else if (data.departures.trainServices && Array.isArray(data.departures.trainServices.service))
-        departuresArray = data.departures.trainServices.service;
-    }
+    // For free account, departures are directly under data.departures
+    const departuresArray = Array.isArray(data.departures) ? data.departures : [];
 
     const board = document.getElementById('departure-board');
     board.innerHTML = '';
 
-    if (!departuresArray || departuresArray.length === 0) {
+    if (departuresArray.length === 0) {
       board.innerHTML = '<tr><td colspan="4">No departures available at the moment.</td></tr>';
       return;
     }
