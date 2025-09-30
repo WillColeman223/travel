@@ -48,14 +48,23 @@ li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
 .map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
 .clouds {
   position: absolute; top: -50px; left: 0; width: 200%; height: 100px;
-  background: url('https://i.ibb.co/0Fyp2tH/clouds.png') repeat-x;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/e/e1/Cloud_icon.svg') repeat-x;
   animation: moveClouds 60s linear infinite;
   z-index: 0;
 }
 @keyframes moveClouds { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-.city-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: url('https://i.ibb.co/5Kf2cVZ/city.png') no-repeat center bottom; background-size: cover; z-index:-1; opacity:0.1; }
-.train-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: url('https://i.ibb.co/Qmp87rT/train.png') no-repeat center bottom; background-size: cover; z-index:-1; opacity:0.1; }
+.city-bg {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/6/63/City_skyline.png') no-repeat center bottom;
+  background-size: cover; z-index:-1; opacity:0.1;
+}
+
+.train-bg {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/2/26/Train_icon.svg') no-repeat center bottom;
+  background-size: cover; z-index:-1; opacity:0.1;
+}
 </style>
 </head>
 <body>
@@ -127,4 +136,5 @@ function toggleMap(id, center, route){
 </script>
 </body>
 </html>
+
 
