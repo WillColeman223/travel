@@ -2,130 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flighty-style Travel Itinerary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flighty-style Travel Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #121212;
-    display: flex;
-    justify-content: center;
-    padding-top: 40px;
-    color: #fff;
-  }
-  .container {
-    width: 95%;
-    max-width: 430px;
-  }
-  .section {
-    position: relative;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(20px);
-    border-radius: 25px;
-    padding: 20px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease, background 0.3s ease;
-  }
-  .section:hover {
-    transform: translateY(-5px);
-    background: rgba(255,255,255,0.1);
-  }
-  .section h2 {
-    font-weight: 700;
-    font-size: 1.3em;
-    margin-bottom: 15px;
-  }
-  ul { list-style: none; padding-left: 0; }
-  li {
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    border-radius: 15px;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(5px);
-    font-weight: 500;
-    transition: all 0.3s ease;
-  }
-  li:hover { transform: scale(1.03); background: rgba(255,255,255,0.1); }
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #0A0A0A;
+  color: #fff;
+  overflow-x: hidden;
+}
 
-  .map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
+.container {
+  width: 95%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
 
-  /* Background images & animations */
-  .clouds {
-    position: absolute;
-    top: -50px;
-    left: 0;
-    width: 200%;
-    height: 100px;
-    background: url('https://upload.wikimedia.org/wikipedia/commons/e/e1/Cloud_icon.svg') repeat-x;
-    animation: moveClouds 60s linear infinite;
-    z-index: 0;
-  }
-  @keyframes moveClouds { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.card {
+  position: relative;
+  background: rgba(30,30,30,0.8);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  overflow: hidden;
+  cursor: pointer;
+  transform: translateY(50px);
+  opacity: 0;
+  transition: all 0.6s ease-out;
+}
 
-  .city-bg, .train-bg {
-    position: absolute;
-    top:0; left:0; width:100%; height:100%; background-size: cover; z-index:-1; opacity:0.1;
-  }
-  .city-bg { background: url('https://upload.wikimedia.org/wikipedia/commons/6/63/City_skyline.png') no-repeat center bottom; }
-  .train-bg { background: url('https://upload.wikimedia.org/wikipedia/commons/2/26/Train_icon.svg') no-repeat center bottom; }
+.card.show {
+  transform: translateY(0);
+  opacity: 1;
+}
 
+.card h2 {
+  font-size: 1.3em;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.card h2 img {
+  width: 25px;
+  margin-right: 10px;
+}
+
+.card ul { list-style: none; padding-left: 0; margin: 0; }
+.card li {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.card li img {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 700;
+  margin-left: auto;
+  color: #fff;
+}
+
+.status-on-time { background: #4CAF50; }
+.status-boarding { background: #FFC107; }
+.status-delayed { background: #F44336; }
+
+.map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
+
+.flight-icon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 30px;
+  animation: fly 4s ease-in-out infinite;
+}
+
+@keyframes fly {
+  0% { transform: translateX(-20px) rotate(0deg); }
+  50% { transform: translateX(20px) rotate(5deg); }
+  100% { transform: translateX(-20px) rotate(0deg); }
+}
 </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- Flight Section -->
-  <div class="section flight" onclick="toggleMap('planeMap', [51.1537, -0.1821], [[51.1537,-0.1821],[40.4680,-3.6894]])">
-    <h2>Flight Summary</h2>
+  <!-- Flight Card -->
+  <div class="card flight" onclick="toggleMap('planeMap', [51.1537, -0.1821], [[51.1537,-0.1821],[40.4680,-3.6894]])">
+    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/airplane-take-off.png"/>Flight <span class="status-badge status-on-time">On Time</span></h2>
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/airplane.png" class="flight-icon"/>
     <ul>
-      <li>Airline & Flight: easyJet EZY8021 (U2 8021)</li>
-      <li>Route: London Gatwick (LGW) → Madrid Barajas (MAD)</li>
-      <li>Aircraft: Airbus A319</li>
-      <li>Distance: ~1,215 km</li>
-      <li>Baggage: Cabin bag only</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/airplane.png"/>Airline: easyJet EZY8021</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/airport.png"/>Route: LGW → MAD</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/aircraft.png"/>Aircraft: Airbus A319</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/baggage.png"/>Baggage: Cabin bag only</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Departure: 08:00</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Arrival: 11:35</li>
     </ul>
     <div id="planeMap" class="map-container"></div>
-    <div class="clouds"></div>
   </div>
 
-  <!-- Metro Section -->
-  <div class="section metro" onclick="toggleMap('metroMap', [40.4680,-3.6894], [[40.4680,-3.6894],[40.4725,-3.6937]])">
-    <h2>Transfer to Chamartín Station</h2>
+  <!-- Metro Card -->
+  <div class="card metro" onclick="toggleMap('metroMap', [40.4680,-3.6894], [[40.4680,-3.6894],[40.4725,-3.6937]])">
+    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/subway.png"/>Metro <span class="status-badge status-boarding">Boarding</span></h2>
     <ul>
-      <li>Arrival at T1: 11:35</li>
-      <li>Immigration & baggage: ~20 min → 11:55</li>
-      <li>Shuttle T1 → T4 (~10 min)</li>
-      <li>Train: Cercanías Line C1 (~12:15 departure)</li>
-      <li>Arrival at Chamartín: ~12:30–12:35</li>
-      <li>Alternative: Taxi (~€30)</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Arrival T1: 11:35</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Immigration & baggage: ~20 min</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/train.png"/>Shuttle T1→T4 (~10 min)</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/subway.png"/>Train C1 (~12:15)</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/marker.png"/>Arrival Chamartín: ~12:30–12:35</li>
     </ul>
     <div id="metroMap" class="map-container"></div>
-    <div class="city-bg"></div>
   </div>
 
-  <!-- Train Section -->
-  <div class="section train" onclick="toggleMap('trainMap', [40.4680,-3.6894], [[40.4680,-3.6894],[41.6528,-4.7189]])">
-    <h2>Train to Valladolid</h2>
+  <!-- Train Card -->
+  <div class="card train" onclick="toggleMap('trainMap', [40.4680,-3.6894], [[40.4680,-3.6894],[41.6528,-4.7189]])">
+    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/train.png"/>Train <span class="status-badge status-on-time">On Time</span></h2>
     <ul>
-      <li>Direct trains: ~1h 30m</li>
-      <li>Sample schedule: 12:03 → 13:33, 13:59 → 15:23</li>
-      <li>6 direct services daily</li>
-      <li>Estimated cost: €15–€30</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Duration: ~1h 30m</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Sample schedule: 12:03 → 13:33, 13:59 → 15:23</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/marker.png"/>6 direct services daily</li>
+      <li><img src="https://img.icons8.com/ios-filled/50/ffffff/money.png"/>Cost: €15–€30</li>
     </ul>
     <div id="trainMap" class="map-container"></div>
-    <div class="train-bg"></div>
   </div>
 
-  <!-- Notes Section -->
-  <div class="section">
-    <h2>Travel Notes</h2>
+  <!-- Notes Card -->
+  <div class="card">
+    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/note.png"/>Notes</h2>
     <ul>
       <li>Traveling with cabin bag only</li>
       <li>Check real-time schedules</li>
@@ -137,6 +161,17 @@
 </div>
 
 <script>
+// Scroll fade-in
+const cards = document.querySelectorAll('.card');
+window.addEventListener('scroll', () => {
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    if(rect.top < window.innerHeight - 50){
+      card.classList.add('show');
+    }
+  });
+});
+
 function toggleMap(id, center, route){
   const mapDiv = document.getElementById(id);
   if(mapDiv.style.display==='block'){
@@ -146,7 +181,19 @@ function toggleMap(id, center, route){
     if(!mapDiv.map){
       mapDiv.map = L.map(id).setView(center,6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapDiv.map);
-      if(route){ L.polyline(route, {color:'red', weight:4}).addTo(mapDiv.map); }
+      if(route){
+        // Animated flight/train path
+        const polyline = L.polyline([], {color:'red', weight:4}).addTo(mapDiv.map);
+        let index = 0;
+        function animateLine(){
+          if(index < route.length){
+            polyline.addLatLng(route[index]);
+            index++;
+            setTimeout(animateLine, 500);
+          }
+        }
+        animateLine();
+      }
     }
   }
 }
