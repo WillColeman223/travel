@@ -101,11 +101,71 @@ body {
   50% { transform: translateX(20px) rotate(5deg); }
   100% { transform: translateX(-20px) rotate(0deg); }
 }
+
+/* Timeline */
+.progress-bar {
+  position: relative;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  margin-top: 15px;
+}
+
+.progress {
+  height: 100%;
+  width: 0%;
+  background: #4CAF50;
+  border-radius: 5px;
+  transition: width 1s linear;
+}
+
+.timeline-icon {
+  position: absolute;
+  top: -12px;
+  left: 0%;
+  width: 24px;
+  transition: left 1s linear;
+}
+
+/* Form */
+.entry-form input, .entry-form button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 0.95em;
+}
+.entry-form button {
+  background: #4CAF50;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.entry-form button:hover {
+  background: #45a049;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
+
+  <!-- Data Entry Form -->
+  <div class="card entry-form">
+    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/add.png"/>Add Travel Entry</h2>
+    <form id="travelForm">
+      <input type="text" name="type" placeholder="Type (Flight/Train/Metro)" required/>
+      <input type="text" name="airline" placeholder="Airline / Carrier"/>
+      <input type="text" name="route" placeholder="Route"/>
+      <input type="time" name="departure" placeholder="Departure"/>
+      <input type="time" name="arrival" placeholder="Arrival"/>
+      <input type="text" name="notes" placeholder="Notes"/>
+      <button type="submit">Submit</button>
+    </form>
+    <p id="formStatus"></p>
+  </div>
 
   <!-- Flight Card -->
   <div class="card flight" onclick="toggleMap('planeMap', [51.1537, -0.1821], [[51.1537,-0.1821],[40.4680,-3.6894]])">
@@ -119,6 +179,10 @@ body {
       <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Departure: 08:00</li>
       <li><img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png"/>Arrival: 11:35</li>
     </ul>
+    <div class="progress-bar">
+      <div class="progress"></div>
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/airplane.png" class="timeline-icon"/>
+    </div>
     <div id="planeMap" class="map-container"></div>
   </div>
 
@@ -172,6 +236,27 @@ window.addEventListener('scroll', () => {
   });
 });
 
+// Google Sheets form submission
+const form = document.getElementById('travelForm');
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+  try {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbxXAewiT_DahZ1jKljTGfX7UMYQ7jz7bGyYNJN8dLhsglEI6AhydLs_p12_3UqJBK3imA/exec', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {'Content-Type': 'application/json'}
+    });
+    const result = await response.json();
+    document.getElementById('formStatus').textContent = 'Entry saved!';
+    form.reset();
+  } catch(err) {
+    document.getElementById('formStatus').textContent = 'Error saving entry';
+  }
+});
+
+// Map toggle + animated route
 function toggleMap(id, center, route){
   const mapDiv = document.getElementById(id);
   if(mapDiv.style.display==='block'){
@@ -182,7 +267,6 @@ function toggleMap(id, center, route){
       mapDiv.map = L.map(id).setView(center,6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapDiv.map);
       if(route){
-        // Animated flight/train path
         const polyline = L.polyline([], {color:'red', weight:4}).addTo(mapDiv.map);
         let index = 0;
         function animateLine(){
@@ -197,9 +281,26 @@ function toggleMap(id, center, route){
     }
   }
 }
+
+// Flight timeline
+function updateTimeline(departure, arrival){
+  const now = new Date();
+  const dep = new Date();
+  const arr = new Date();
+  const [depH, depM] = departure.split(':');
+  const [arrH, arrM] = arrival.split(':');
+  dep.setHours(depH, depM,0,0);
+  arr.setHours(arrH, arrM,0,0);
+  let percent = 0;
+  if(now > dep && now < arr){
+    percent = ((now - dep)/(arr - dep))*100;
+  } else if(now >= arr){ percent = 100; }
+  document.querySelector('.progress').style.width = percent + '%';
+  document.querySelector('.timeline-icon').style.left = `calc(${percent}% - 12px)`;
+}
+setInterval(()=> updateTimeline('08:00','11:35'), 1000);
 </script>
 
 </body>
 </html>
-
 
