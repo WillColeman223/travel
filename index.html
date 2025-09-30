@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Petersfield Station LED Departure Board</title>
+  <title>Petersfield Station LED Board</title>
   <style>
     body {
       margin: 0;
@@ -65,29 +65,37 @@
 </div>
 
 <script>
-  const url = 'http://localhost:3000/departures'; // fetch from Node proxy
+  const url = 'http://localhost:3000/departures';
 
   async function fetchDepartures() {
     try {
       const response = await fetch(url);
       const data = await response.json();
 
-      const departures = data.departures || []; // adapt based on JSON structure
+      // RTT JSON path for free account
+      // departures may be nested under data.departures.all or data.departures.trainServices
+      const departuresArray =
+        (data.departures && data.departures.all) ||
+        (data.departures && data.departures.trainServices) ||
+        [];
+
       const board = document.getElementById('departure-board');
       board.innerHTML = '';
 
-      if (departures.length === 0) {
+      if (departuresArray.length === 0) {
         board.innerHTML = 'No departures available at the moment.';
         return;
       }
 
-      departures.forEach(dep => {
-        const statusClass = getStatusClass(dep.etd || dep.status || '');
+      departuresArray.forEach(dep => {
+        const statusText = dep.etd || dep.status || 'On time';
+        const statusClass = getStatusClass(statusText);
+
         const trainInfo = `
           <span class="train-info">
             ${dep.std || ''} ➜ ${dep.destination_name || dep.destination || ''} | 
             Platform: ${dep.platform || 'TBC'} | 
-            <span class="status ${statusClass}">${dep.etd || dep.status || 'On time'}</span>
+            <span class="status ${statusClass}">${statusText}</span>
           </span>
         `;
         board.innerHTML += trainInfo;
@@ -116,4 +124,5 @@
 
 </body>
 </html>
+
 
