@@ -1,232 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flighty Clone - Dynamic</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<style>
-body {
-  margin:0;
-  font-family:'Inter', sans-serif;
-  background:#0A0A0A;
-  color:#fff;
-  overflow-x:hidden;
-}
-.container {
-  width:95%;
-  max-width:430px;
-  margin:0 auto;
-  padding-bottom:40px;
-}
-.card {
-  position:relative;
-  background: rgba(30,30,30,0.8);
-  backdrop-filter: blur(20px);
-  border-radius: 25px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.6);
-  overflow:hidden;
-  cursor:pointer;
-  transform: translateY(50px);
-  opacity:0;
-  transition: all 0.6s ease-out;
-}
-.card.show { transform: translateY(0); opacity:1; }
-.card h2 {
-  font-size:1.4em;
-  font-weight:700;
-  margin:0 0 10px 0;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.card h2 img { width:25px; margin-right:10px; }
-.card .small-text { font-size:0.9em; opacity:0.7; }
-ul { list-style:none; padding-left:0; margin:0; }
-li {
-  padding:10px 12px;
-  margin-bottom:8px;
-  border-radius:12px;
-  background: rgba(255,255,255,0.05);
-  font-weight:500;
-  display:flex;
-  align-items:center;
-}
-li img { width:20px; margin-right:10px; }
-
-.status-badge {
-  display:inline-block;
-  padding:4px 10px;
-  border-radius:12px;
-  font-size:0.8em;
-  font-weight:700;
-  color:#fff;
-}
-.status-on-time{ background:#4CAF50; }
-.status-boarding{ background:#FFC107; }
-.status-delayed{ background:#F44336; }
-
-/* Timeline */
-.progress-bar {
-  position:relative;
-  height:10px;
-  background:rgba(255,255,255,0.1);
-  border-radius:5px;
-  margin-top:12px;
-}
-.progress {
-  height:100%;
-  width:0%;
-  background:#4CAF50;
-  border-radius:5px;
-  transition:width 1s linear;
-}
-.timeline-icon {
-  position:absolute;
-  top:-12px;
-  left:0%;
-  width:24px;
-  transition:left 1s linear;
-}
-.map-container { display:none; width:100%; height:180px; border-radius:15px; margin-top:12px; }
-
-/* Form */
-.entry-form input, .entry-form button {
-  width:100%;
-  margin-bottom:8px;
-  padding:8px;
-  border-radius:12px;
-  border:none;
-  outline:none;
-  font-size:0.95em;
-}
-.entry-form button {
-  background:#4CAF50;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-.entry-form button:hover { background:#45a049; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petersfield Station Live Departure Board</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1c1c1c;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 90%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #ffcc00;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px #000;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+    th {
+      background-color: #333;
+      color: #ffcc00;
+    }
+    tr:nth-child(even) {
+      background-color: #222;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .on-time {
+      color: #00ff00;
+    }
+    .delayed {
+      color: #ff0000;
+    }
+    .cancelled {
+      color: #ff9900;
+    }
+  </style>
 </head>
 <body>
+
 <div class="container">
-
-  <!-- Data Entry Form -->
-  <div class="card entry-form">
-    <h2><img src="https://img.icons8.com/ios-filled/50/ffffff/add.png"/>Add Travel Entry</h2>
-    <form id="travelForm">
-      <input type="text" name="type" placeholder="Type (Flight/Train/Metro)" required/>
-      <input type="text" name="airline" placeholder="Airline / Carrier"/>
-      <input type="text" name="route" placeholder="Route"/>
-      <input type="time" name="departure" placeholder="Departure"/>
-      <input type="time" name="arrival" placeholder="Arrival"/>
-      <input type="text" name="notes" placeholder="Notes"/>
-      <button type="submit">Submit</button>
-    </form>
-    <p id="formStatus"></p>
-  </div>
-
-  <!-- Dynamic cards will be inserted here -->
-  <div id="cardsContainer"></div>
-
+  <h1>Petersfield Station Live Departure Board</h1>
+  <table id="departure-board">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Destination</th>
+        <th>Platform</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Departure data will be inserted here -->
+    </tbody>
+  </table>
 </div>
 
 <script>
-// Scroll fade-in
-function fadeInCards(){
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card=>{
-    const rect = card.getBoundingClientRect();
-    if(rect.top < window.innerHeight - 50){ card.classList.add('show'); }
-  });
-}
-window.addEventListener('scroll', fadeInCards);
-window.addEventListener('load', fadeInCards);
+  const apiKey = 'a62b590c7ed1324dc5ff0a91ea70d0d380d372f0';
+  const url = `https://api.rtt.io/api/v1/live/departures/PTR?api_key=${apiKey}`;
 
-// Form submission to Google Sheets
-const form = document.getElementById('travelForm');
-form.addEventListener('submit', async e=>{
-  e.preventDefault();
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-  try{
-    const response = await fetch('https://script.google.com/macros/s/AKfycbxXAewiT_DahZ1jKljTGfX7UMYQ7jz7bGyYNJN8dLhsglEI6AhydLs_p12_3UqJBK3imA/exec',{
-      method:'POST',
-      body:JSON.stringify(data),
-      headers:{'Content-Type':'application/json'}
-    });
-    await response.json();
-    document.getElementById('formStatus').textContent='Entry saved!';
-    form.reset();
-    loadEntries(); // reload cards dynamically
-  }catch(err){
-    document.getElementById('formStatus').textContent='Error saving entry';
+  async function fetchDepartures() {
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const departures = data.departures || [];
+      const tableBody = document.querySelector('#departure-board tbody');
+      
+      // Clear existing rows
+      tableBody.innerHTML = '';
+
+      departures.forEach(departure => {
+        const row = tableBody.insertRow();
+
+        // Time
+        row.insertCell(0).textContent = departure.std || departure.etd;
+
+        // Destination
+        row.insertCell(1).textContent = departure.destination_name || departure.destination;
+
+        // Platform
+        row.insertCell(2).textContent = departure.platform || 'TBC';
+
+        // Status
+        const statusCell = row.insertCell(3);
+        let statusText = departure.etd || 'On time';
+        let statusClass = 'on-time';
+        if (statusText.toLowerCase() === 'delayed') statusClass = 'delayed';
+        if (statusText.toLowerCase() === 'cancelled') statusClass = 'cancelled';
+        statusCell.textContent = statusText;
+        statusCell.classList.add('status', statusClass);
+      });
+
+    } catch (error) {
+      console.error('Error fetching departure data:', error);
+    }
   }
-});
 
-// Load entries from Google Sheet
-async function loadEntries(){
-  // Google Sheets JSON fetch trick (need published sheet as JSON)
-  const sheetURL = 'https://script.google.com/macros/s/AKfycbxXAewiT_DahZ1jKljTGfX7UMYQ7jz7bGyYNJN8dLhsglEI6AhydLs_p12_3UqJBK3imA/exec';
-  try{
-    const res = await fetch(sheetURL + '?action=get'); // Add ?action=get in your Apps Script to return JSON
-    const data = await res.json();
-    const container = document.getElementById('cardsContainer');
-    container.innerHTML='';
-    data.forEach(entry=>{
-      const card = document.createElement('div');
-      card.classList.add('card');
-      card.innerHTML=`
-        <h2>${entry.type} <span class="status-badge status-on-time">On Time</span></h2>
-        <ul>
-          <li><strong>${entry.airline || ''}</strong></li>
-          <li>${entry.route || ''}</li>
-          <li>Departure: ${entry.departure || ''}</li>
-          <li>Arrival: ${entry.arrival || ''}</li>
-          <li>${entry.notes || ''}</li>
-        </ul>
-        <div class="progress-bar">
-          <div class="progress"></div>
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/airplane.png" class="timeline-icon"/>
-        </div>
-        <div class="map-container" id="map_${entry.departure}"></div>
-      `;
-      container.appendChild(card);
-      animateTimeline(card, entry.departure, entry.arrival);
-    });
-    fadeInCards();
-  }catch(e){ console.log(e);}
-}
+  // Initial fetch
+  fetchDepartures();
 
-// Animate timeline progress
-function animateTimeline(card, dep, arr){
-  const progress = card.querySelector('.progress');
-  const icon = card.querySelector('.timeline-icon');
-  setInterval(()=>{
-    const now = new Date();
-    const depTime = new Date();
-    const arrTime = new Date();
-    if(!dep || !arr) return;
-    const [depH,depM]=dep.split(':'); const [arrH,arrM]=arr.split(':');
-    depTime.setHours(depH,depM,0,0);
-    arrTime.setHours(arrH,arrM,0,0);
-    let percent=0;
-    if(now>depTime && now<arrTime){ percent=((now-depTime)/(arrTime-depTime))*100; }
-    else if(now>=arrTime) percent=100;
-    progress.style.width = percent+'%';
-    icon.style.left = `calc(${percent}% - 12px)`;
-  },1000);
-}
-
-// Initialize
-loadEntries();
+  // Refresh every 30 seconds
+  setInterval(fetchDepartures, 30000);
 </script>
+
 </body>
 </html>
-
-
