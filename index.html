@@ -1,125 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Petersfield Station LED Board</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: #00FF00;
-      font-family: 'Courier New', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petersfield Station LED Board</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #00FF00;
+  }
 
-    .board {
-      width: 90%;
-      height: 80%;
-      border: 5px solid #00FF00;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-    }
+  .board {
+    width: 90%;
+    max-width: 1200px;
+    border: 5px solid #00FF00;
+    box-shadow: 0 0 20px rgba(0,255,0,0.5);
+    padding: 10px;
+    background-color: #000;
+  }
 
-    .scrolling-text {
-      position: absolute;
-      white-space: nowrap;
-      animation: scroll-left 30s linear infinite;
-      font-size: 1.5rem;
-    }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
 
-    @keyframes scroll-left {
-      0% { left: 100%; }
-      100% { left: -100%; }
-    }
+  th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #00FF00;
+  }
 
-    .train-info {
-      display: inline-block;
-      margin-right: 40px;
-      padding: 5px 10px;
-      background-color: rgba(0, 255, 0, 0.1);
-      border-radius: 5px;
-    }
+  th {
+    font-size: 1.2rem;
+  }
 
-    .status {
-      font-weight: bold;
-    }
+  td {
+    font-size: 1.1rem;
+  }
 
-    .on-time { color: #00FF00; }
-    .delayed { color: #FF0000; }
-    .cancelled { color: #FF9900; }
-  </style>
+  .status {
+    font-weight: bold;
+  }
+
+  .on-time { color: #00FF00; }
+  .delayed { color: #FF0000; }
+  .cancelled { color: #FF9900; }
+</style>
 </head>
 <body>
 
 <div class="board">
-  <div class="scrolling-text" id="departure-board">
-    Loading departures...
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Destination</th>
+        <th>Platform</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="departure-board">
+      <tr><td colspan="4">Loading departures...</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <script>
-  const url = 'http://localhost:3000/departures';
+const url = 'http://localhost:3000/departures';
 
-  async function fetchDepartures() {
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
+async function fetchDepartures() {
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
 
-      // RTT JSON path for free account
-      // departures may be nested under data.departures.all or data.departures.trainServices
-      const departuresArray =
-        (data.departures && data.departures.all) ||
-        (data.departures && data.departures.trainServices) ||
-        [];
+    const departuresArray =
+      (data.departures && data.departures.all) ||
+      (data.departures && data.departures.trainServices) ||
+      [];
 
-      const board = document.getElementById('departure-board');
-      board.innerHTML = '';
+    const board = document.getElementById('departure-board');
+    board.innerHTML = '';
 
-      if (departuresArray.length === 0) {
-        board.innerHTML = 'No departures available at the moment.';
-        return;
-      }
-
-      departuresArray.forEach(dep => {
-        const statusText = dep.etd || dep.status || 'On time';
-        const statusClass = getStatusClass(statusText);
-
-        const trainInfo = `
-          <span class="train-info">
-            ${dep.std || ''} ➜ ${dep.destination_name || dep.destination || ''} | 
-            Platform: ${dep.platform || 'TBC'} | 
-            <span class="status ${statusClass}">${statusText}</span>
-          </span>
-        `;
-        board.innerHTML += trainInfo;
-      });
-
-    } catch (error) {
-      console.error('Error fetching departures:', error);
-      document.getElementById('departure-board').innerHTML = 'Error fetching departures.';
+    if (departuresArray.length === 0) {
+      board.innerHTML = '<tr><td colspan="4">No departures available at the moment.</td></tr>';
+      return;
     }
+
+    departuresArray.forEach(dep => {
+      const statusText = dep.etd || dep.status || 'On time';
+      const statusClass = getStatusClass(statusText);
+
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${dep.std || ''}</td>
+        <td>${dep.destination_name || dep.destination || ''}</td>
+        <td>${dep.platform || 'TBC'}</td>
+        <td class="status ${statusClass}">${statusText}</td>
+      `;
+
+      board.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error('Error fetching departures:', error);
+    document.getElementById('departure-board').innerHTML =
+      '<tr><td colspan="4">Error fetching departures.</td></tr>';
   }
+}
 
-  function getStatusClass(status) {
-    if (!status) return 'on-time';
-    const s = status.toLowerCase();
-    if (s.includes('delayed')) return 'delayed';
-    if (s.includes('cancelled')) return 'cancelled';
-    return 'on-time';
-  }
+function getStatusClass(status) {
+  if (!status) return 'on-time';
+  const s = status.toLowerCase();
+  if (s.includes('delayed')) return 'delayed';
+  if (s.includes('cancelled')) return 'cancelled';
+  return 'on-time';
+}
 
-  // Initial fetch
-  fetchDepartures();
+// Initial fetch
+fetchDepartures();
 
-  // Refresh every 30 seconds
-  setInterval(fetchDepartures, 30000);
+// Refresh every 30 seconds
+setInterval(fetchDepartures, 30000);
 </script>
 
 </body>
