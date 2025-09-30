@@ -3,47 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Petersfield Station Live Departure Board</title>
+  <title>Petersfield Station LED Departure Board</title>
   <style>
     body {
-      font-family: 'Courier New', monospace;
-      background-color: #000;
-      color: #00FF00;
       margin: 0;
       padding: 0;
+      background-color: #000;
+      color: #00FF00;
+      font-family: 'Courier New', monospace;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       overflow: hidden;
     }
+
     .board {
-      width: 80%;
+      width: 90%;
       height: 80%;
+      border: 5px solid #00FF00;
       overflow: hidden;
       position: relative;
-      border: 5px solid #00FF00;
       box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
     }
+
     .scrolling-text {
       position: absolute;
       white-space: nowrap;
       animation: scroll-left 30s linear infinite;
+      font-size: 1.5rem;
     }
+
     @keyframes scroll-left {
       0% { left: 100%; }
       100% { left: -100%; }
     }
+
     .train-info {
       display: inline-block;
-      padding: 10px 20px;
-      margin: 5px;
+      margin-right: 40px;
+      padding: 5px 10px;
       background-color: rgba(0, 255, 0, 0.1);
       border-radius: 5px;
     }
+
     .status {
       font-weight: bold;
     }
+
     .on-time { color: #00FF00; }
     .delayed { color: #FF0000; }
     .cancelled { color: #FF9900; }
@@ -53,49 +60,58 @@
 
 <div class="board">
   <div class="scrolling-text" id="departure-board">
-    <!-- Train information will be inserted here -->
+    Loading departures...
   </div>
 </div>
 
 <script>
-  const apiKey = 'a62b590c7ed1324dc5ff0a91ea70d0d380d372f0';
-  const url = `https://api.rtt.io/api/v1/live/departures/PTR?api_key=${apiKey}`;
+  const url = 'http://localhost:3000/departures'; // fetch from Node proxy
 
   async function fetchDepartures() {
     try {
       const response = await fetch(url);
       const data = await response.json();
-      const departures = data.departures || [];
-      const board = document.getElementById('departure-board');
-      board.innerHTML = ''; // Clear previous content
 
-      departures.forEach(departure => {
-        const statusClass = getStatusClass(departure.etd);
+      const departures = data.departures || []; // adapt based on JSON structure
+      const board = document.getElementById('departure-board');
+      board.innerHTML = '';
+
+      if (departures.length === 0) {
+        board.innerHTML = 'No departures available at the moment.';
+        return;
+      }
+
+      departures.forEach(dep => {
+        const statusClass = getStatusClass(dep.etd || dep.status || '');
         const trainInfo = `
           <span class="train-info">
-            <span class="time">${departure.std || departure.etd}</span>
-            <span class="destination">${departure.destination_name || departure.destination}</span>
-            <span class="platform">${departure.platform || 'TBC'}</span>
-            <span class="status ${statusClass}">${departure.etd || 'On time'}</span>
+            ${dep.std || ''} ➜ ${dep.destination_name || dep.destination || ''} | 
+            Platform: ${dep.platform || 'TBC'} | 
+            <span class="status ${statusClass}">${dep.etd || dep.status || 'On time'}</span>
           </span>
         `;
         board.innerHTML += trainInfo;
       });
+
     } catch (error) {
-      console.error('Error fetching departure data:', error);
+      console.error('Error fetching departures:', error);
+      document.getElementById('departure-board').innerHTML = 'Error fetching departures.';
     }
   }
 
   function getStatusClass(status) {
     if (!status) return 'on-time';
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('delayed')) return 'delayed';
-    if (statusLower.includes('cancelled')) return 'cancelled';
+    const s = status.toLowerCase();
+    if (s.includes('delayed')) return 'delayed';
+    if (s.includes('cancelled')) return 'cancelled';
     return 'on-time';
   }
 
+  // Initial fetch
   fetchDepartures();
-  setInterval(fetchDepartures, 30000); // Refresh every 30 seconds
+
+  // Refresh every 30 seconds
+  setInterval(fetchDepartures, 30000);
 </script>
 
 </body>
