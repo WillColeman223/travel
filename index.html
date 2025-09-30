@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Itinerary</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .container {
+    background: #fff;
+    border-radius: 30px;
+    width: 90%;
+    max-width: 900px;
+    padding: 40px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    animation: fadeIn 1s ease forwards;
+    opacity: 0;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: 2.5em;
+    text-align: center;
+    background: linear-gradient(90deg, #ff6a00, #ee0979);
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 40px;
+    animation: slideDown 1s ease forwards;
+  }
+
+  .section {
+    margin-bottom: 30px;
+    padding: 25px;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #f9f9f9, #e0f7fa);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    animation: fadeSlide 1s ease forwards;
+    opacity: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .section:hover {
+    transform: translateY(-5px);
+  }
+
+  h2 {
+    font-weight: 600;
+    font-size: 1.5em;
+    color: #00796b;
+    margin-bottom: 15px;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    background: linear-gradient(90deg, #b2dfdb, #80cbc4);
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  li:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #4db6ac, #00897b);
+    color: #fff;
+  }
+
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+  @keyframes slideDown { from {opacity:0; transform: translateY(-20px);} to {opacity:1; transform: translateY(0);} }
+  @keyframes fadeSlide { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Travel Itinerary</h1>
+
+  <div class="section">
+    <h2>Flight Summary</h2>
+    <ul>
+      <li>Airline & Flight: easyJet EZY8021 (U2 8021)</li>
+      <li>Route: London Gatwick (LGW) → Madrid Barajas (MAD)</li>
+      <li>Aircraft: Airbus A319</li>
+      <li>Distance: ~1,215 km (≈753 miles)</li>
+      <li>Baggage: Cabin bag only (no checked luggage)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Departure Details</h2>
+    <ul>
+      <li>Airport: London Gatwick (LGW)</li>
+      <li>Terminal: North Terminal</li>
+      <li>Departure Time: 08:00 (GMT)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Arrival Details</h2>
+    <ul>
+      <li>Airport: Madrid Barajas (MAD)</li>
+      <li>Terminal: 1</li>
+      <li>Arrival Time: 11:35 (CET, UTC+1)</li>
+      <li>Flight Duration: 2h 35m</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Transfer to Madrid Chamartín Station</h2>
+    <ul>
+      <li>Arrival at T1: 11:35</li>
+      <li>Immigration & baggage: ~20 min → 11:55</li>
+      <li>Shuttle bus: T1 → T4 (~10 min) → 12:05</li>
+      <li>Train from T4: Cercanías Line C1 (~12:15 departure, 16 min journey)</li>
+      <li>Arrival at Chamartín: ~12:30–12:35</li>
+      <li>Alternative: Taxi direct (~20–25 min, €30)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Train from Chamartín to Palencia</h2>
+    <ul>
+      <li>Direct trains: ~1h 20–1h 30m</li>
+      <li>Sample schedule: 12:03 → 13:33, 13:59 → 15:23, 16:30 → 17:59, 17:50 → 19:17</li>
+      <li>6 direct services daily</li>
+      <li>Best option given arrival ~12:30: catch the 13:59 departure if you miss 12:03</li>
+      <li>Estimated cost: €15–€30 (standard direct ticket)</li>
+      <li>Note: Schedule to be confirmed closer to 26 Dec</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Travel Notes</h2>
+    <ul>
+      <li>Traveling with cabin bag only — no need to wait for checked luggage</li>
+      <li>Check real-time schedules for Cercanías Line C1 and Renfe trains</li>
+      <li>Allow extra time for queues or delays</li>
+      <li>Taxi is best if in a hurry or with heavy luggage</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
