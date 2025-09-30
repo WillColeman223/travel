@@ -5,53 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Petersfield Station LED Board</title>
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: #000;
-    font-family: 'Courier New', monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    color: #00FF00;
-  }
+body {
+  margin:0; padding:0;
+  background-color:#000;
+  font-family:'Courier New', monospace;
+  color:#00FF00;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
 
-  .board {
-    width: 90%;
-    max-width: 1200px;
-    border: 5px solid #00FF00;
-    box-shadow: 0 0 20px rgba(0,255,0,0.5);
-    padding: 10px;
-    background-color: #000;
-  }
+.board {
+  width:95%;
+  max-width:1200px;
+  border:5px solid #00FF00;
+  box-shadow:0 0 20px rgba(0,255,0,0.5);
+  padding:10px;
+  background-color:#000;
+  overflow:hidden;
+}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-  }
+table {
+  width:100%;
+  border-collapse:collapse;
+}
 
-  th, td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #00FF00;
-  }
+th, td {
+  padding:8px 12px;
+  border-bottom:1px solid #00FF00;
+  white-space:nowrap;
+}
 
-  th {
-    font-size: 1.2rem;
-  }
+th { font-size:1.2rem; }
+td { font-size:1.1rem; }
 
-  td {
-    font-size: 1.1rem;
-  }
+.status { font-weight:bold; }
+.on-time { color:#00FF00; }
+.delayed { color:#FF0000; }
+.cancelled { color:#FF9900; }
 
-  .status {
-    font-weight: bold;
-  }
+/* Scrolling effect for long text */
+.scroll-cell {
+  display:inline-block;
+  position:relative;
+  max-width:200px;
+  overflow:hidden;
+  vertical-align:middle;
+}
 
-  .on-time { color: #00FF00; }
-  .delayed { color: #FF0000; }
-  .cancelled { color: #FF9900; }
+.scroll-cell span {
+  display:inline-block;
+  padding-left:100%;
+  animation: scroll-text 8s linear infinite;
+}
+
+@keyframes scroll-text {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
 </style>
 </head>
 <body>
@@ -80,15 +92,20 @@ async function fetchDepartures() {
     const response = await fetch(url);
     const data = await response.json();
 
-    const departuresArray =
-      (data.departures && data.departures.all) ||
-      (data.departures && data.departures.trainServices) ||
-      [];
+    console.log("Raw RTT JSON:", data); // Debug: see actual structure
+
+    // Attempt to get departures array from multiple possible paths
+    let departuresArray = [];
+    if (data.departures) {
+      if (Array.isArray(data.departures.all)) departuresArray = data.departures.all;
+      else if (data.departures.trainServices && Array.isArray(data.departures.trainServices.service))
+        departuresArray = data.departures.trainServices.service;
+    }
 
     const board = document.getElementById('departure-board');
     board.innerHTML = '';
 
-    if (departuresArray.length === 0) {
+    if (!departuresArray || departuresArray.length === 0) {
       board.innerHTML = '<tr><td colspan="4">No departures available at the moment.</td></tr>';
       return;
     }
@@ -101,7 +118,7 @@ async function fetchDepartures() {
 
       row.innerHTML = `
         <td>${dep.std || ''}</td>
-        <td>${dep.destination_name || dep.destination || ''}</td>
+        <td class="scroll-cell"><span>${dep.destination_name || dep.destination || ''}</span></td>
         <td>${dep.platform || 'TBC'}</td>
         <td class="status ${statusClass}">${statusText}</td>
       `;
