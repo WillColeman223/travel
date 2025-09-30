@@ -3,73 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Travel Itinerary</title>
+<title>Flighty-style Travel Itinerary</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(to bottom, #6dd5ed, #2193b0);
-  display: flex;
-  justify-content: center;
-  padding-top: 50px;
-  min-height: 100vh;
-}
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #121212;
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+    color: #fff;
+  }
+  .container {
+    width: 95%;
+    max-width: 430px;
+  }
+  .section {
+    position: relative;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+  .section:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.1);
+  }
+  .section h2 {
+    font-weight: 700;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+  }
+  ul { list-style: none; padding-left: 0; }
+  li {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(5px);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  li:hover { transform: scale(1.03); background: rgba(255,255,255,0.1); }
 
-.container {
-  width: 95%;
-  max-width: 430px;
-}
+  .map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
 
-.section {
-  position: relative;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(20px);
-  border-radius: 25px;
-  padding: 20px;
-  margin-bottom: 20px;
-  overflow: hidden;
-  color: #fff;
-  cursor: pointer;
-}
+  /* Background images & animations */
+  .clouds {
+    position: absolute;
+    top: -50px;
+    left: 0;
+    width: 200%;
+    height: 100px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/e/e1/Cloud_icon.svg') repeat-x;
+    animation: moveClouds 60s linear infinite;
+    z-index: 0;
+  }
+  @keyframes moveClouds { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-.section h2 {
-  font-weight: 600;
-  font-size: 1.2em;
-  margin-bottom: 15px;
-}
+  .city-bg, .train-bg {
+    position: absolute;
+    top:0; left:0; width:100%; height:100%; background-size: cover; z-index:-1; opacity:0.1;
+  }
+  .city-bg { background: url('https://upload.wikimedia.org/wikipedia/commons/6/63/City_skyline.png') no-repeat center bottom; }
+  .train-bg { background: url('https://upload.wikimedia.org/wikipedia/commons/2/26/Train_icon.svg') no-repeat center bottom; }
 
-ul { list-style: none; padding-left: 0; }
-li { padding: 10px 12px; margin-bottom: 8px; border-radius: 15px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); font-weight: 500; transition: all 0.3s ease; }
-li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
-
-.map-container { display: none; width: 100%; height: 200px; border-radius: 15px; margin-top: 15px; }
-.clouds {
-  position: absolute; top: -50px; left: 0; width: 200%; height: 100px;
-  background: url('https://upload.wikimedia.org/wikipedia/commons/e/e1/Cloud_icon.svg') repeat-x;
-  animation: moveClouds 60s linear infinite;
-  z-index: 0;
-}
-@keyframes moveClouds { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-.city-bg {
-  position: absolute; top:0; left:0; width:100%; height:100%;
-  background: url('https://upload.wikimedia.org/wikipedia/commons/6/63/City_skyline.png') no-repeat center bottom;
-  background-size: cover; z-index:-1; opacity:0.1;
-}
-
-.train-bg {
-  position: absolute; top:0; left:0; width:100%; height:100%;
-  background: url('https://upload.wikimedia.org/wikipedia/commons/2/26/Train_icon.svg') no-repeat center bottom;
-  background-size: cover; z-index:-1; opacity:0.1;
-}
 </style>
 </head>
 <body>
+
 <div class="container">
 
+  <!-- Flight Section -->
   <div class="section flight" onclick="toggleMap('planeMap', [51.1537, -0.1821], [[51.1537,-0.1821],[40.4680,-3.6894]])">
     <h2>Flight Summary</h2>
     <ul>
@@ -83,6 +95,7 @@ li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
     <div class="clouds"></div>
   </div>
 
+  <!-- Metro Section -->
   <div class="section metro" onclick="toggleMap('metroMap', [40.4680,-3.6894], [[40.4680,-3.6894],[40.4725,-3.6937]])">
     <h2>Transfer to Chamartín Station</h2>
     <ul>
@@ -97,8 +110,9 @@ li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
     <div class="city-bg"></div>
   </div>
 
+  <!-- Train Section -->
   <div class="section train" onclick="toggleMap('trainMap', [40.4680,-3.6894], [[40.4680,-3.6894],[41.6528,-4.7189]])">
-    <h2>Train from Chamartín to Valladolid</h2>
+    <h2>Train to Valladolid</h2>
     <ul>
       <li>Direct trains: ~1h 30m</li>
       <li>Sample schedule: 12:03 → 13:33, 13:59 → 15:23</li>
@@ -109,6 +123,7 @@ li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
     <div class="train-bg"></div>
   </div>
 
+  <!-- Notes Section -->
   <div class="section">
     <h2>Travel Notes</h2>
     <ul>
@@ -118,7 +133,9 @@ li:hover { transform: scale(1.03); background: rgba(255,255,255,0.25); }
       <li>Taxi if in a hurry</li>
     </ul>
   </div>
+
 </div>
+
 <script>
 function toggleMap(id, center, route){
   const mapDiv = document.getElementById(id);
@@ -134,6 +151,7 @@ function toggleMap(id, center, route){
   }
 }
 </script>
+
 </body>
 </html>
 
